@@ -43,6 +43,11 @@ exports.defaults = {
 	"graph_height": 96,
 	"graph_line_width": 2,
 	"graph_minimum_length": 41,					// Desired depth + 1
+	"graph_type": "winrate",					// "winrate" (eval line) or "wdl" (stacked W/D/L area)
+
+	"graph_win_colour": "#d8d8d8",				// W/D/L graph: White-win band (from White's POV)
+	"graph_draw_colour": "#888888",				// W/D/L graph: draw band
+	"graph_loss_colour": "#383838",				// W/D/L graph: Black-win band
 
 	"light_square": "#dadada",
 	"dark_square": "#b4b4b4",

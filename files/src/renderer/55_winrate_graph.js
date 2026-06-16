@@ -28,7 +28,17 @@ function NewGrapher() {
 	grapher.draw_everything = function(node) {
 
 		this.clear_graph();
-		let width = graph.width;		// After the above.
+
+		if (config.graph_type === "wdl") {
+			this.draw_wdl(node);
+		} else {
+			this.draw_winrate(node);
+		}
+	};
+
+	grapher.draw_winrate = function(node) {
+
+		let width = graph.width;		// After clear_graph() in draw_everything().
 		let height = graph.height;
 
 		let eval_list = node.all_graph_values();
@@ -67,6 +77,102 @@ function NewGrapher() {
 			for (let edge of run) {
 				graphctx.lineTo(edge.x2, edge.y2);
 			}
+			graphctx.stroke();
+		}
+	};
+
+	grapher.draw_wdl = function(node) {
+
+		let width = graph.width;		// After clear_graph() in draw_everything().
+		let height = graph.height;
+
+		let wdl_list = node.all_graph_wdl();
+		let graph_length = node.graph_length_knower.val;
+
+		// Build contiguous runs of points that have data. Gaps (null entries) are left
+		// empty rather than bridged, so the chart never invents data it doesn't have...
+
+		let ply_width = Math.max(2, width / graph_length);
+
+		let runs = [];
+		let run = [];
+
+		for (let n = 0; n < wdl_list.length; n++) {
+			let e = wdl_list[n];
+			if (e) {
+				run.push({
+					x: width * n / graph_length,
+					y1: e[0] * height,					// White-win / draw boundary
+					y2: (e[0] + e[1]) * height,			// draw / Black-win boundary
+				});
+			} else if (run.length > 0) {
+				runs.push(run);
+				run = [];
+			}
+		}
+		if (run.length > 0) {
+			runs.push(run);
+		}
+
+		// A lone point (e.g. only the current position has been analysed) can't form a
+		// filled area, so give it a sliver of width so it remains visible...
+
+		for (let run of runs) {
+			if (run.length === 1) {
+				let p = run[0];
+				let x2 = Math.min(width, p.x + ply_width);
+				run.push({x: x2, y1: p.y1, y2: p.y2});
+			}
+		}
+
+		// Draw the three stacked bands, White's POV top-to-bottom: win / draw / loss...
+
+		for (let run of runs) {
+			this.fill_wdl_band(run, run.map(p => 0),     run.map(p => p.y1),   config.graph_win_colour);
+			this.fill_wdl_band(run, run.map(p => p.y1),  run.map(p => p.y2),   config.graph_draw_colour);
+			this.fill_wdl_band(run, run.map(p => p.y2),  run.map(p => height), config.graph_loss_colour);
+		}
+
+		// Quartile guide lines over the bands, then the position cursor line...
+
+		this.draw_wdl_guides(width, height);
+		this.draw_position_line(wdl_list.length, node);
+	};
+
+	grapher.fill_wdl_band = function(run, top_ys, bot_ys, colour) {
+
+		if (run.length < 2) {
+			return;
+		}
+
+		graphctx.fillStyle = colour;
+		graphctx.beginPath();
+		graphctx.moveTo(run[0].x, top_ys[0]);
+		for (let i = 1; i < run.length; i++) {
+			graphctx.lineTo(run[i].x, top_ys[i]);
+		}
+		for (let i = run.length - 1; i >= 0; i--) {
+			graphctx.lineTo(run[i].x, bot_ys[i]);
+		}
+		graphctx.closePath();
+		graphctx.fill();
+	};
+
+	grapher.draw_wdl_guides = function(width, height) {
+
+		// Quartile reference lines. Drawn in a contrasting colour because a grey line
+		// would vanish against the grey draw band and the dark loss band.
+
+		let pixel_y_adjustment = config.graph_line_width % 2 === 0 ? 0 : -0.5;
+
+		graphctx.strokeStyle = "rgba(102, 170, 170, 0.55)";
+		graphctx.lineWidth = config.graph_line_width;
+		graphctx.setLineDash([config.graph_line_width, config.graph_line_width]);
+
+		for (let y_fraction of [0.25, 0.5, 0.75]) {
+			graphctx.beginPath();
+			graphctx.moveTo(0, height * y_fraction + pixel_y_adjustment);
+			graphctx.lineTo(width, height * y_fraction + pixel_y_adjustment);
 			graphctx.stroke();
 		}
 	};

@@ -1057,6 +1057,32 @@ function menu_build() {
 					type: "separator"
 				},
 				{
+					label: translate.t("Graph type"),
+					submenu: [
+						{
+							label: translate.t("Evaluation line"),
+							type: "checkbox",
+							checked: config.graph_type !== "wdl",
+							click: () => {
+								set_checks("Display", "Graph type", "Evaluation line");
+								win.webContents.send("set", {graph_type: "winrate"});
+							}
+						},
+						{
+							label: translate.t("Win / Draw / Loss"),
+							type: "checkbox",
+							checked: config.graph_type === "wdl",
+							click: () => {
+								set_checks("Display", "Graph type", "Win / Draw / Loss");
+								win.webContents.send("set", {graph_type: "wdl"});
+							}
+						},
+					]
+				},
+				{
+					type: "separator"
+				},
+				{
 					label: translate.t("Arrows"),
 					type: "checkbox",
 					checked: config.arrows_enabled,

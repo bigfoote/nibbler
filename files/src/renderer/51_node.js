@@ -141,6 +141,23 @@ const node_prototype = {
 		return ret;
 	},
 
+	all_graph_wdl: function() {
+
+		// Like all_graph_values(), but each element is either null or a [win, draw, loss]
+		// array of fractions (summing to 1) from White's POV.
+
+		let ret = [];
+		let node = this.get_end();
+
+		while (node) {
+			ret.push(node.table.get_graph_wdl());
+			node = node.parent;
+		}
+
+		ret.reverse();
+		return ret;
+	},
+
 	future_history: function() {
 		return this.get_end().history();
 	},

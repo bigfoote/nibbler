@@ -21,6 +21,8 @@ const table_prototype = {
 		this.terminal = null;					// null = unknown, "" = not terminal, "Non-empty string" = terminal reason
 		this.graph_y = null;					// Used by grapher only, value from White's POV between 0 and 1
 		this.graph_y_version = 0;				// Which version (above) was used to generate the graph_y value
+		this.graph_wdl = null;					// Used by grapher only, [win, draw, loss] fractions from White's POV (sum 1), or null
+		this.graph_wdl_version = 0;				// Which version (above) was used to generate the graph_wdl value
 		this.already_autopopulated = false;
 	},
 
@@ -46,11 +48,44 @@ const table_prototype = {
 		}
 	},
 
+	get_graph_wdl: function() {
+
+		// The position's [win, draw, loss] as fractions (summing to 1) from White's POV,
+		// taken from the best move's WDL. Returns null if unavailable. Mirrors get_graph_y().
+
+		if (this.graph_wdl_version === this.version) {
+			return this.graph_wdl;
+		} else {
+			let info = SortedMoveInfoFromTable(this)[0];
+			if (info && !info.__ghost && info.__touched && (this.nodes > 1 || this.limit === 1) &&
+				Array.isArray(info.wdl) && info.wdl.length === 3) {
+
+				let wdl = info.wdl;												// [w, d, l] from the side-to-move's POV
+				if (info.board.active === "b") {								// Convert to White's POV
+					wdl = [wdl[2], wdl[1], wdl[0]];
+				}
+				let sum = wdl[0] + wdl[1] + wdl[2];
+				if (sum > 0) {
+					this.graph_wdl = [wdl[0] / sum, wdl[1] / sum, wdl[2] / sum];
+				} else {
+					this.graph_wdl = null;
+				}
+			} else {
+				this.graph_wdl = null;
+			}
+			this.graph_wdl_version = this.version;
+			return this.graph_wdl;
+		}
+	},
+
 	set_terminal_info: function(reason, ev) {	// ev is ignored if reason is "" (i.e. not a terminal position)
 		if (reason) {
 			this.terminal = reason;
 			this.graph_y = ev;
 			this.graph_y_version = this.version;
+			// Synthesize a definite WDL from the White-POV ev (1 = White wins, 0 = Black wins, 0.5 = draw)...
+			this.graph_wdl = ev === 1 ? [1, 0, 0] : ev === 0 ? [0, 0, 1] : [0, 1, 0];
+			this.graph_wdl_version = this.version;
 		} else {
 			this.terminal = "";
 		}
