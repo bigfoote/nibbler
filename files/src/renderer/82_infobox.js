@@ -166,10 +166,10 @@ let infobox_props = {
 			if (use_bars && max_n > 0) {
 				let n = (typeof info.n === "number" && info.n > 0) ? info.n : 0;
 				if (n <= 0) {
-					conf = 0.18;
+					conf = 0.15;
 				} else {
-					conf = 1 + 0.28 * Math.log10(n / max_n);	// -0.28 opacity per 10x fewer visits than the best move
-					if (conf < 0.18) conf = 0.18;
+					conf = 1 + 0.40 * Math.log10(n / max_n);	// -0.40 opacity per 10x fewer visits than the best move
+					if (conf < 0.15) conf = 0.15;
 					if (conf > 1) conf = 1;
 				}
 			}
