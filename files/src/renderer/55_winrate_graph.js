@@ -133,10 +133,34 @@ function NewGrapher() {
 			this.fill_wdl_band(run, run.map(p => p.y2),  run.map(p => height), config.graph_loss_colour);
 		}
 
-		// Quartile guide lines over the bands, then the position cursor line...
+		// Quartile guides under, then the EV (expected-score) line, then the position cursor on top...
 
 		this.draw_wdl_guides(width, height);
+		this.draw_wdl_ev_line(runs);
 		this.draw_position_line(wdl_list.length, node);
+	};
+
+	grapher.draw_wdl_ev_line = function(runs) {
+
+		// The expected-score line: through the middle of the draw band (win + draw/2, White POV),
+		// i.e. the boundary between White's and Black's expected points. Red, matching the EV tick
+		// on the per-move WDL bars, and distinct from the teal quartile guides.
+
+		graphctx.strokeStyle = "#e05555";
+		graphctx.lineWidth = config.graph_line_width;
+		graphctx.setLineDash([]);
+
+		for (let run of runs) {
+			if (run.length < 2) {
+				continue;
+			}
+			graphctx.beginPath();
+			graphctx.moveTo(run[0].x, (run[0].y1 + run[0].y2) / 2);
+			for (let i = 1; i < run.length; i++) {
+				graphctx.lineTo(run[i].x, (run[i].y1 + run[i].y2) / 2);
+			}
+			graphctx.stroke();
+		}
 	};
 
 	grapher.fill_wdl_band = function(run, top_ys, bot_ys, colour) {

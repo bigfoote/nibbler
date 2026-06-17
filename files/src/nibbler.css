@@ -242,7 +242,8 @@ ul {
 
 .infoline.haswdlbar {
 	display: flex;
-	align-items: flex-start;
+	align-items: stretch;				/* bar fills the row height, so adjacent bars nearly touch */
+	margin-bottom: 0.3em;				/* tighter than the default 1em, to keep bars close for comparison */
 }
 
 .infoline-body {
@@ -253,14 +254,13 @@ ul {
 .wdlbar, .wdlbar-empty {
 	flex: 0 0 auto;
 	width: 5.5em;
-	height: 0.95em;
-	margin: 0.2em 0.6em 0 0;
+	margin: 0 0.6em 0 0;
 	box-sizing: border-box;
 	vertical-align: top;
 }
 
 .wdlbar {
-	display: inline-flex;
+	display: flex;
 	position: relative;					/* positioning context for the EV tick */
 	border: 1px solid #000000;
 	overflow: hidden;
@@ -281,7 +281,7 @@ ul {
 	bottom: 0;
 	width: 2px;
 	margin-left: -1px;					/* centre the 2px tick on its left% position */
-	background-color: #66aaaa;				/* teal, matching the graph guide lines */
+	background-color: #e05555;				/* red: EV everywhere, distinct from the teal guides */
 }
 
 .enginechooser {

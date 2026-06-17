@@ -165,7 +165,13 @@ let infobox_props = {
 			let conf = 1;
 			if (use_bars && max_n > 0) {
 				let n = (typeof info.n === "number" && info.n > 0) ? info.n : 0;
-				conf = 0.35 + 0.65 * (Math.log(n + 1) / Math.log(max_n + 1));
+				if (n <= 0) {
+					conf = 0.18;
+				} else {
+					conf = 1 + 0.28 * Math.log10(n / max_n);	// -0.28 opacity per 10x fewer visits than the best move
+					if (conf < 0.18) conf = 0.18;
+					if (conf > 1) conf = 1;
+				}
 			}
 
 			// The WDL bar (left column) and the start of the body column. The bar is
