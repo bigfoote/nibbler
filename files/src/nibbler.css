@@ -261,17 +261,27 @@ ul {
 
 .wdlbar {
 	display: inline-flex;
+	position: relative;					/* positioning context for the EV tick */
 	border: 1px solid #000000;
 	overflow: hidden;
 }
 
-.wdlbar > span {
+.wdlbar > span.wdl_w, .wdlbar > span.wdl_d, .wdlbar > span.wdl_l {
 	height: 100%;
 	box-sizing: border-box;
 }
 
 .wdlbar > span.wdl_w, .wdlbar > span.wdl_d {
 	border-right: 1px solid rgba(0, 0, 0, 0.6);		/* segment separators (White|Draw, Draw|Black) */
+}
+
+.wdlbar > span.wdlev {						/* EV tick: vertical mark at win + draw/2 (White POV) */
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	width: 2px;
+	margin-left: -1px;					/* centre the 2px tick on its left% position */
+	background-color: #66aaaa;				/* teal, matching the graph guide lines */
 }
 
 .enginechooser {

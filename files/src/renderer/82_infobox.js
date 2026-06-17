@@ -125,6 +125,16 @@ let infobox_props = {
 
 		let use_bars = config.show_wdl_bar && info_list.some(o => o.wdl_white() !== null);
 
+		// For the confidence fade: the most-visited move's N. We dim each move's eval
+		// (bar + EV number) by log(N) relative to this, since low-visit evals are noisy.
+
+		let max_n = 0;
+		for (let o of info_list) {
+			if (typeof o.n === "number" && o.n > max_n) {
+				max_n = o.n;
+			}
+		}
+
 		let substrings = [];
 		let clicker_index = 0;
 		let div_index = 0;
@@ -149,6 +159,15 @@ let infobox_props = {
 
 			substrings.push(`<div id="infoline_${div_index++}" class="${divclass}">`);
 
+			// Confidence (0.35..1) for the eval fade, from this move's N relative to the
+			// best move's N on a log scale. Untouched / zero-visit moves fade to the floor.
+
+			let conf = 1;
+			if (use_bars && max_n > 0) {
+				let n = (typeof info.n === "number" && info.n > 0) ? info.n : 0;
+				conf = 0.35 + 0.65 * (Math.log(n + 1) / Math.log(max_n + 1));
+			}
+
 			// The WDL bar (left column) and the start of the body column. The bar is
 			// always White POV (fixed White / Draw / Black order); see ADR 0001...
 
@@ -159,14 +178,17 @@ let infobox_props = {
 					let wpct = 100 * ww[0] / sum;
 					let dpct = 100 * ww[1] / sum;
 					let lpct = 100 * ww[2] / sum;
+					let evpct = wpct + dpct / 2;		// White-POV expected score, for the EV tick.
 					let title = `W ${wpct.toFixed(0)}%  D ${dpct.toFixed(0)}%  L ${lpct.toFixed(0)}%`;
-					// Widths/colours are applied later via the CSSOM (see style_wdl_bars), NOT as inline
-					// style attributes, because the page's Content-Security-Policy forbids inline styles.
+					// Widths/colours/opacity/tick position are applied later via the CSSOM (see
+					// style_wdl_bars), NOT as inline style attributes, because the page's
+					// Content-Security-Policy forbids inline styles.
 					substrings.push(
-						`<span class="wdlbar" title="${title}">` +
+						`<span class="wdlbar" title="${title}" data-conf="${conf.toFixed(3)}">` +
 						`<span class="wdl_w" data-pct="${wpct.toFixed(2)}"></span>` +
 						`<span class="wdl_d" data-pct="${dpct.toFixed(2)}"></span>` +
 						`<span class="wdl_l" data-pct="${lpct.toFixed(2)}"></span>` +
+						`<span class="wdlev" data-ev="${evpct.toFixed(2)}"></span>` +
 						`</span>`
 					);
 				} else {
@@ -203,7 +225,12 @@ let infobox_props = {
 				}
 			}
 
-			if (info.subcycle === best_subcycle || config.never_grayout_infolines) {
+			let blue = info.subcycle === best_subcycle || config.never_grayout_infolines;
+
+			if (use_bars) {
+				// Tag the EV number so style_wdl_bars() can fade it to match its bar's confidence.
+				substrings.push(`<span class="ev${blue ? " blue" : ""}" data-conf="${conf.toFixed(3)}">${value_string} </span>`);
+			} else if (blue) {
 				substrings.push(`<span class="blue">${value_string} </span>`);
 			} else {
 				substrings.push(`${value_string} `);
@@ -316,15 +343,26 @@ let infobox_props = {
 		// style attributes in the HTML because the page's Content-Security-Policy (style-src
 		// 'self') strips them; CSSOM assignments are not subject to that restriction.
 
-		for (let seg of infobox.querySelectorAll(".wdlbar > span")) {
-			seg.style.width = seg.dataset.pct + "%";
-			if (seg.classList.contains("wdl_w")) {
-				seg.style.backgroundColor = config.graph_win_colour;
-			} else if (seg.classList.contains("wdl_d")) {
-				seg.style.backgroundColor = config.graph_draw_colour;
-			} else {
-				seg.style.backgroundColor = config.graph_loss_colour;
+		for (let bar of infobox.querySelectorAll(".wdlbar")) {
+			bar.style.opacity = bar.dataset.conf;					// Confidence fade (also fades the tick, a child).
+			for (let seg of bar.children) {
+				if (seg.classList.contains("wdlev")) {
+					seg.style.left = seg.dataset.ev + "%";			// EV tick position.
+				} else {
+					seg.style.width = seg.dataset.pct + "%";
+					if (seg.classList.contains("wdl_w")) {
+						seg.style.backgroundColor = config.graph_win_colour;
+					} else if (seg.classList.contains("wdl_d")) {
+						seg.style.backgroundColor = config.graph_draw_colour;
+					} else {
+						seg.style.backgroundColor = config.graph_loss_colour;
+					}
+				}
 			}
+		}
+
+		for (let ev of infobox.querySelectorAll(".ev")) {			// Fade the EV number to match its bar.
+			ev.style.opacity = ev.dataset.conf;
 		}
 	},
 
