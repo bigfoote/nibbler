@@ -160,11 +160,13 @@ let infobox_props = {
 					let dpct = 100 * ww[1] / sum;
 					let lpct = 100 * ww[2] / sum;
 					let title = `W ${wpct.toFixed(0)}%  D ${dpct.toFixed(0)}%  L ${lpct.toFixed(0)}%`;
+					// Widths/colours are applied later via the CSSOM (see style_wdl_bars), NOT as inline
+					// style attributes, because the page's Content-Security-Policy forbids inline styles.
 					substrings.push(
 						`<span class="wdlbar" title="${title}">` +
-						`<span class="wdl_w" style="width:${wpct.toFixed(2)}%;background-color:${config.graph_win_colour}"></span>` +
-						`<span class="wdl_d" style="width:${dpct.toFixed(2)}%;background-color:${config.graph_draw_colour}"></span>` +
-						`<span class="wdl_l" style="width:${lpct.toFixed(2)}%;background-color:${config.graph_loss_colour}"></span>` +
+						`<span class="wdl_w" data-pct="${wpct.toFixed(2)}"></span>` +
+						`<span class="wdl_d" data-pct="${dpct.toFixed(2)}"></span>` +
+						`<span class="wdl_l" data-pct="${lpct.toFixed(2)}"></span>` +
 						`</span>`
 					);
 				} else {
@@ -302,6 +304,28 @@ let infobox_props = {
 		}
 
 		infobox.innerHTML = substrings.join("");
+
+		if (use_bars) {
+			this.style_wdl_bars();
+		}
+	},
+
+	style_wdl_bars: function() {
+
+		// Apply each WDL bar segment's width and colour via the CSSOM. We can't use inline
+		// style attributes in the HTML because the page's Content-Security-Policy (style-src
+		// 'self') strips them; CSSOM assignments are not subject to that restriction.
+
+		for (let seg of infobox.querySelectorAll(".wdlbar > span")) {
+			seg.style.width = seg.dataset.pct + "%";
+			if (seg.classList.contains("wdl_w")) {
+				seg.style.backgroundColor = config.graph_win_colour;
+			} else if (seg.classList.contains("wdl_d")) {
+				seg.style.backgroundColor = config.graph_draw_colour;
+			} else {
+				seg.style.backgroundColor = config.graph_loss_colour;
+			}
+		}
 	},
 
 	must_draw_infobox: function() {
