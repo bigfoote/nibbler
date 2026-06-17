@@ -118,6 +118,13 @@ let infobox_props = {
 		this.info_clickers = [];
 		this.info_clickers_node_id = node.id;
 
+		// Adaptive WDL bars: use the two-column (bar + body) layout only when the bar
+		// feature is on AND at least one candidate in this list actually has WDL data.
+		// Otherwise fall back to the classic inline layout so non-WDL engines (or
+		// positions) don't get a wasted left margin on every line.
+
+		let use_bars = config.show_wdl_bar && info_list.some(o => o.wdl_white() !== null);
+
 		let substrings = [];
 		let clicker_index = 0;
 		let div_index = 0;
@@ -128,6 +135,10 @@ let infobox_props = {
 
 			let divclass = "infoline";
 
+			if (use_bars) {
+				divclass += " " + "haswdlbar";
+			}
+
 			if (info.subcycle !== best_subcycle && !config.never_grayout_infolines) {
 				divclass += " " + "gray";
 			}
@@ -137,6 +148,30 @@ let infobox_props = {
 			}
 
 			substrings.push(`<div id="infoline_${div_index++}" class="${divclass}">`);
+
+			// The WDL bar (left column) and the start of the body column. The bar is
+			// always White POV (fixed White / Draw / Black order); see ADR 0001...
+
+			if (use_bars) {
+				let ww = info.wdl_white();
+				if (ww) {
+					let sum = ww[0] + ww[1] + ww[2];
+					let wpct = 100 * ww[0] / sum;
+					let dpct = 100 * ww[1] / sum;
+					let lpct = 100 * ww[2] / sum;
+					let title = `W ${wpct.toFixed(0)}%  D ${dpct.toFixed(0)}%  L ${lpct.toFixed(0)}%`;
+					substrings.push(
+						`<span class="wdlbar" title="${title}">` +
+						`<span class="wdl_w" style="width:${wpct.toFixed(2)}%;background-color:${config.graph_win_colour}"></span>` +
+						`<span class="wdl_d" style="width:${dpct.toFixed(2)}%;background-color:${config.graph_draw_colour}"></span>` +
+						`<span class="wdl_l" style="width:${lpct.toFixed(2)}%;background-color:${config.graph_loss_colour}"></span>` +
+						`</span>`
+					);
+				} else {
+					substrings.push(`<span class="wdlbar-empty"></span>`);		// Reserve the column so bodies stay aligned.
+				}
+				substrings.push(`<span class="infoline-body">`);
+			}
 
 			// The "focus" button...
 
@@ -256,7 +291,11 @@ let infobox_props = {
 				substrings.push(`<span class="gray">(${extra_stat_strings.join(', ')})</span>`);
 			}
 
-			// Close the whole div...
+			// Close the body column (if any) and the whole div...
+
+			if (use_bars) {
+				substrings.push("</span>");
+			}
 
 			substrings.push("</div>");
 

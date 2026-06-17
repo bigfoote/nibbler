@@ -249,6 +249,20 @@ const info_prototype = {
 		}
 	},
 
+	wdl_white: function() {
+
+		// The move's WDL as a [win, draw, loss] integer triple from White's POV,
+		// or null if unavailable. (info.wdl is stored from the side-to-move's POV.)
+
+		if (Array.isArray(this.wdl) === false || this.wdl.length !== 3) {
+			return null;
+		}
+		if (this.board.active === "b") {
+			return [this.wdl[2], this.wdl[1], this.wdl[0]];
+		}
+		return [this.wdl[0], this.wdl[1], this.wdl[2]];
+	},
+
 	wdl_string: function(pov) {
 		if (Array.isArray(this.wdl) === false || this.wdl.length !== 3) {
 			return "?";

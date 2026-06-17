@@ -1486,6 +1486,17 @@ function menu_build() {
 							}
 						},
 						{
+							label: translate.t("WDL bar (per-move, White POV)"),
+							type: "checkbox",
+							checked: config.show_wdl_bar,
+							click: () => {
+								win.webContents.send("call", {
+									fn: "toggle",
+									args: ["show_wdl_bar"],
+								});
+							}
+						},
+						{
 							type: "separator"
 						},
 						{

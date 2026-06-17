@@ -240,6 +240,40 @@ ul {
 	margin-bottom: 1em;
 }
 
+.infoline.haswdlbar {
+	display: flex;
+	align-items: flex-start;
+}
+
+.infoline-body {
+	flex: 1 1 auto;
+	min-width: 0;					/* allow the PV to wrap within this column instead of overflowing */
+}
+
+.wdlbar, .wdlbar-empty {
+	flex: 0 0 auto;
+	width: 5.5em;
+	height: 0.95em;
+	margin: 0.2em 0.6em 0 0;
+	box-sizing: border-box;
+	vertical-align: top;
+}
+
+.wdlbar {
+	display: inline-flex;
+	border: 1px solid #000000;
+	overflow: hidden;
+}
+
+.wdlbar > span {
+	height: 100%;
+	box-sizing: border-box;
+}
+
+.wdlbar > span.wdl_w, .wdlbar > span.wdl_d {
+	border-right: 1px solid rgba(0, 0, 0, 0.6);		/* segment separators (White|Draw, Draw|Black) */
+}
+
 .enginechooser {
 	margin-bottom: 1em;
 }
