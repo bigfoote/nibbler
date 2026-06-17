@@ -125,15 +125,8 @@ let infobox_props = {
 
 		let use_bars = config.show_wdl_bar && info_list.some(o => o.wdl_white() !== null);
 
-		// For the confidence fade: the most-visited move's N. We dim each move's eval
-		// (bar + EV number) by log(N) relative to this, since low-visit evals are noisy.
-
-		let max_n = 0;
-		for (let o of info_list) {
-			if (typeof o.n === "number" && o.n > max_n) {
-				max_n = o.n;
-			}
-		}
+		// Total visits, for the per-move confidence disc (raw share of the search).
+		let total_nodes = node.table.nodes;
 
 		let substrings = [];
 		let clicker_index = 0;
@@ -159,21 +152,6 @@ let infobox_props = {
 
 			substrings.push(`<div id="infoline_${div_index++}" class="${divclass}">`);
 
-			// Confidence (0.35..1) for the eval fade, from this move's N relative to the
-			// best move's N on a log scale. Untouched / zero-visit moves fade to the floor.
-
-			let conf = 1;
-			if (use_bars && max_n > 0) {
-				let n = (typeof info.n === "number" && info.n > 0) ? info.n : 0;
-				if (n <= 0) {
-					conf = 0.15;
-				} else {
-					conf = 1 + 0.40 * Math.log10(n / max_n);	// -0.40 opacity per 10x fewer visits than the best move
-					if (conf < 0.15) conf = 0.15;
-					if (conf > 1) conf = 1;
-				}
-			}
-
 			// The WDL bar (left column) and the start of the body column. The bar is
 			// always White POV (fixed White / Draw / Black order); see ADR 0001...
 
@@ -190,7 +168,7 @@ let infobox_props = {
 					// style_wdl_bars), NOT as inline style attributes, because the page's
 					// Content-Security-Policy forbids inline styles.
 					substrings.push(
-						`<span class="wdlbar" title="${title}" data-conf="${conf.toFixed(3)}">` +
+						`<span class="wdlbar" title="${title}">` +
 						`<span class="wdl_w" data-pct="${wpct.toFixed(2)}"></span>` +
 						`<span class="wdl_d" data-pct="${dpct.toFixed(2)}"></span>` +
 						`<span class="wdl_l" data-pct="${lpct.toFixed(2)}"></span>` +
@@ -215,6 +193,17 @@ let infobox_props = {
 				}
 			}
 
+			// The confidence disc: a small pie filled by this move's raw share of the search
+			// (N / total visits), sitting just left of the EV number. Kept off the WDL bar so
+			// the bar's colours (which ARE the data) stay at full fidelity. Fill applied later
+			// via the CSSOM (see style_wdl_bars) because inline styles are CSP-forbidden.
+
+			if (use_bars) {
+				let share = (total_nodes > 0 && typeof info.n === "number" && info.n > 0) ? info.n / total_nodes : 0;
+				if (share > 1) share = 1;
+				substrings.push(`<span class="confdisc" data-fill="${share.toFixed(4)}" title="${(share * 100).toFixed(1)}% of visits"></span>`);
+			}
+
 			// The value...
 
 			let value_string = "?";
@@ -231,12 +220,7 @@ let infobox_props = {
 				}
 			}
 
-			let blue = info.subcycle === best_subcycle || config.never_grayout_infolines;
-
-			if (use_bars) {
-				// Tag the EV number so style_wdl_bars() can fade it to match its bar's confidence.
-				substrings.push(`<span class="ev${blue ? " blue" : ""}" data-conf="${conf.toFixed(3)}">${value_string} </span>`);
-			} else if (blue) {
+			if (info.subcycle === best_subcycle || config.never_grayout_infolines) {
 				substrings.push(`<span class="blue">${value_string} </span>`);
 			} else {
 				substrings.push(`${value_string} `);
@@ -350,7 +334,6 @@ let infobox_props = {
 		// 'self') strips them; CSSOM assignments are not subject to that restriction.
 
 		for (let bar of infobox.querySelectorAll(".wdlbar")) {
-			bar.style.opacity = bar.dataset.conf;					// Confidence fade (also fades the tick, a child).
 			for (let seg of bar.children) {
 				if (seg.classList.contains("wdlev")) {
 					seg.style.left = seg.dataset.ev + "%";			// EV tick position.
@@ -367,8 +350,10 @@ let infobox_props = {
 			}
 		}
 
-		for (let ev of infobox.querySelectorAll(".ev")) {			// Fade the EV number to match its bar.
-			ev.style.opacity = ev.dataset.conf;
+		// Confidence disc: a pie filled clockwise to the move's visit share.
+		for (let disc of infobox.querySelectorAll(".confdisc")) {
+			let deg = (parseFloat(disc.dataset.fill) || 0) * 360;
+			disc.style.background = `conic-gradient(#cccccc 0deg ${deg}deg, #333333 ${deg}deg 360deg)`;
 		}
 	},
 

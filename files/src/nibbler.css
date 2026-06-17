@@ -275,6 +275,17 @@ ul {
 	border-right: 1px solid rgba(0, 0, 0, 0.6);		/* segment separators (White|Draw, Draw|Black) */
 }
 
+.confdisc {							/* confidence pie: filled clockwise to the move's visit share */
+	display: inline-block;
+	width: 0.72em;
+	height: 0.72em;
+	border-radius: 50%;
+	margin-right: 0.45em;
+	vertical-align: -0.07em;				/* sit on the text baseline next to the EV number */
+	box-shadow: 0 0 0 1px #000000;				/* thin outline for definition on any background */
+	/* background (the conic-gradient fill) is set per-element via the CSSOM — see style_wdl_bars */
+}
+
 .wdlbar > span.wdlev {						/* EV tick: vertical mark at win + draw/2 (White POV) */
 	position: absolute;
 	top: 0;

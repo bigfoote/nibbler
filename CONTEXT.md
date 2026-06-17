@@ -41,11 +41,12 @@ three proportional segments in fixed **White / Draw / Black** order (like the Li
 opening explorer), for visual comparison across candidate moves. Always White POV so
 the segment order never switches. Augments (does not replace) the blue EV number.
 
-**Confidence fade**:
-The infobox dims a candidate move's **evaluation** (its WDL bar and blue EV number, not
-its PV text) in proportion to how few nodes the engine spent on it — low-visit moves have
-noisy evals. Opacity scales with `log(N)` relative to the most-visited move. Communicates
-"don't trust this eval" pre-attentively, mirroring Leela's own visit-based move ordering.
+**Confidence disc**:
+A small pie next to each candidate's EV number, filled clockwise to that move's raw share
+of the search (`N / total visits`). Signals how much the engine actually explored a move —
+a nearly-empty disc means a noisy eval not to be trusted. Kept off the WDL bar deliberately:
+the bar's colours *are* its data, so confidence rides a separate, colourless glyph rather
+than dimming the bar (see ADR 0002).
 
 **EV tick**:
 A thin vertical mark on a WDL bar at `win + draw/2` (White POV) — i.e. the expected-score
