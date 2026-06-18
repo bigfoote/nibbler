@@ -261,9 +261,21 @@ ul {
 
 .wdlbar {
 	display: flex;
-	position: relative;					/* positioning context for the EV tick */
+	position: relative;					/* positioning context for the EV tick and midline */
 	border: 1px solid #000000;
 	overflow: hidden;
+}
+
+.wdlbar::after {						/* the ½ midline (teal, matching the graph's quartile guides) */
+	content: "";
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 1px;
+	background-color: rgba(102, 170, 170, 0.6);
+	z-index: 1;
 }
 
 .wdlbar > span.wdl_w, .wdlbar > span.wdl_d, .wdlbar > span.wdl_l {
@@ -293,6 +305,7 @@ ul {
 	width: 2px;
 	margin-left: -1px;					/* centre the 2px tick on its left% position */
 	background-color: #e05555;				/* red: EV everywhere, distinct from the teal guides */
+	z-index: 2;						/* keep the red EV tick above the teal midline */
 }
 
 .enginechooser {
