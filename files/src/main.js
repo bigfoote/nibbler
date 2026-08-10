@@ -1080,6 +1080,35 @@ function menu_build() {
 					]
 				},
 				{
+					label: translate.t("Move list"),
+					submenu: [
+						{
+							label: translate.t("Inline"),
+							type: "checkbox",
+							checked: config.movelist_layout !== "columns",
+							click: () => {
+								set_checks("Display", "Move list", "Inline");
+								win.webContents.send("call", {
+									fn: "set_movelist_layout",
+									args: ["inline"],
+								});
+							}
+						},
+						{
+							label: translate.t("Columns (MCO)"),
+							type: "checkbox",
+							checked: config.movelist_layout === "columns",
+							click: () => {
+								set_checks("Display", "Move list", "Columns (MCO)");
+								win.webContents.send("call", {
+									fn: "set_movelist_layout",
+									args: ["columns"],
+								});
+							}
+						},
+					]
+				},
+				{
 					type: "separator"
 				},
 				{

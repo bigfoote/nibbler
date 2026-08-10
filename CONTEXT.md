@@ -48,6 +48,14 @@ a nearly-empty disc means a noisy eval not to be trusted. Kept off the WDL bar d
 the bar's colours *are* its data, so confidence rides a separate, colourless glyph rather
 than dimming the bar (see ADR 0002).
 
+**Movelist layout**:
+How the movelist pane renders the game tree, selected by `config.movelist_layout`.
+**Inline** is the classic flowing text with variations in parentheses. **Column
+layout** (`"columns"`) is the MCO-style table: one row per fullmove number, a shared
+number column at the left, a White/Black **column pair** per line, and each variation
+opening in a new pair to the right, aligned at its branch row (see ADR 0003).
+_Avoid_: table mode, grid view
+
 **EV tick**:
 A thin vertical mark on a WDL bar at `win + draw/2` (White POV) — i.e. the expected-score
 point, the same quantity the blue EV number expresses, drawn where it falls within the bands.
