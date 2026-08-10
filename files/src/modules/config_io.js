@@ -35,6 +35,7 @@ exports.defaults = {
 	"board_size": 640,
 	"info_font_size": 16,
 	"pgn_font_size": 16,
+	"movelist_layout": "inline",				// "inline" (flowing text) or "columns" (MCO-style table)
 	"fen_font_size": 16,
 	"arrow_width": 8,
 	"arrowhead_radius": 12,

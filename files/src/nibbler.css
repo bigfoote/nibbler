@@ -135,7 +135,7 @@ input[type=text]:focus {
 	display: block;
 	color: #999999;
 	font-family: monospace, monospace;
-	overflow-x: hidden;
+	overflow-x: auto;					/* column layout can be wider than the pane */
 	overflow-y: auto;
 	padding-right: 10px;				/* so the text doesn't get so near the scroll bar */
 	pointer-events: auto;
@@ -340,4 +340,29 @@ span.movelist_highlight_yellow {
 
 span.nobr {
 	white-space: nowrap;				/* Used for O-O and O-O-O moves */
+}
+
+table.movelist_table {
+	border-collapse: collapse;
+}
+
+table.movelist_table td {
+	padding: 0 0.6em 0 0;
+	vertical-align: top;
+	white-space: nowrap;
+}
+
+td.movelist_numcol {
+	color: #555555;
+	text-align: right;
+	padding-right: 0.4em;
+}
+
+td.movelist_wcell.movelist_pair_sep {
+	border-left: 1px solid #3c3c3c;
+	padding-left: 0.6em;
+}
+
+span.movelist_ellipsis {
+	color: #555555;
 }

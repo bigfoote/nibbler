@@ -2292,6 +2292,11 @@ let hub_props = {
 		config.fen_font_size = n;
 	},
 
+	set_movelist_layout: function(s) {
+		config.movelist_layout = s;
+		this.tree.dom_from_scratch();
+	},
+
 	set_arrow_size: function(width, radius, fontsize) {
 		config.arrow_width = width;
 		config.arrowhead_radius = radius;
